@@ -1,0 +1,83 @@
+{
+  "attack_events": [
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    190,
+    191,
+    193,
+    194
+  ],
+  "correct_decision": "isolate",
+  "description": "Phishing attachment -> WinWord -> encoded PowerShell -> C2 -> discovery/collection -> lateral movement to file server -> exfiltration",
+  "links": [
+    [
+      181,
+      182,
+      "created"
+    ],
+    [
+      181,
+      183,
+      "spawned"
+    ],
+    [
+      182,
+      183,
+      "read"
+    ],
+    [
+      183,
+      184,
+      "spawned"
+    ],
+    [
+      184,
+      185,
+      "connected"
+    ],
+    [
+      184,
+      186,
+      "resolved"
+    ],
+    [
+      184,
+      187,
+      "spawned"
+    ],
+    [
+      184,
+      190,
+      "authenticated"
+    ],
+    [
+      187,
+      188,
+      "created"
+    ],
+    [
+      190,
+      191,
+      "authenticated"
+    ],
+    [
+      191,
+      193,
+      "created"
+    ],
+    [
+      191,
+      194,
+      "connected"
+    ]
+  ],
+  "n": 500,
+  "seed": 4,
+  "vector": "phishing_powershell"
+}
