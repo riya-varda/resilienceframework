@@ -100,6 +100,10 @@ def suspicion(e):
         if img in ("schtasks.exe", "regsvr32.exe"):
             s += 1.5
             why.append("task-or-reg")
+        cmd = d.get("cmd", "").lower()
+        if img == "rundll32.exe" and ("comsvcs" in cmd or "minidump" in cmd):
+            s += 3.0
+            why.append("credential-dump-indicator")
         if parent == "services.exe" and img in SHELLS and e["host"].startswith("SRV"):
             s += 1.0
             why.append("server-service-shell")
@@ -198,7 +202,13 @@ def reconstruct(path):
             for lg in logons:
                 if lg["details"].get("type") != "network" or lg["user"] != e["user"]:
                     continue
-                if eid in scores and lg["details"].get("src") == e["host"] \
+                # Lateral movement: a process on host A followed by a
+                # network logon arriving from A onto host B.  Originally
+                # restricted to seed events; relaxed to any event already
+                # in the candidate chain so credential-theft vectors
+                # where the lateral-movement initiator is reachable from
+                # (but not itself) a high-suspicion event are traceable.
+                if eid in visited and lg["details"].get("src") == e["host"] \
                         and 0 <= (lg["t"] - e["t"]).total_seconds() <= 900:
                     partners.append((lg, "authenticated"))
                 if lg["host"] == e["host"] and 0 <= (e["t"] - lg["t"]).total_seconds() <= 900:
@@ -294,6 +304,14 @@ def reconstruct(path):
         and e["image"].lower() in SHELLS
         and e["details"].get("parent", "").lower() in BAD_PARENTS
         for e in evs)
+    # Credential-dump indicators also demonstrate execution lineage
+    if not has_lineage:
+        has_lineage = any(
+            e["source"] == "process"
+            and e["image"].lower() == "rundll32.exe"
+            and ("comsvcs" in e["details"].get("cmd", "").lower()
+                 or "minidump" in e["details"].get("cmd", "").lower())
+            for e in evs)
     has_external = any(
         e["source"] == "network"
         and (is_external(e["details"].get("dst", ""))

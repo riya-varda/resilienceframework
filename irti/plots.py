@@ -43,6 +43,7 @@ SOURCE_LABELS = {
 VECTOR_LABELS = {
     "phishing_powershell": "Phishing \u2192 PowerShell",
     "exploit_webshell": "Web exploit \u2192 webshell",
+    "credential_dumping": "Credential theft \u2192 lateral",
 }
 
 

@@ -63,12 +63,21 @@ python3 -m venv .venv
 |---|---|
 | `phishing_powershell` | attachment delivered by Outlook → WinWord opens it → encoded PowerShell → C2 → discovery → zip collection → lateral network logon to file server → exfil |
 | `exploit_webshell` | inbound exploit against w3wp → cmd → `shell.aspx` webroot drop → PowerShell → scheduled-task persistence → C2 → DNS-tunnel exfil |
+| `credential_dumping` | RDP brute-force → cmd → rundll32 lsass dump → PowerShell C2 → lateral network logon to DB server → archive → exfil |
 
 ## Degradation conditions
 
 `full`, `no_process`, `no_network` (network+dns), `no_dns`, `no_file`,
 `no_logon`, plus `random_<pct>` (e.g. `random_25`). Degraded logs keep original
 event ids so predictions stay matchable to ground truth.
+
+Combined conditions (stretch): `no_process+no_dns`, `no_file+no_logon`, etc.
+Use `python run.py --combined` to include them in the sweep.
+
+## Additional tools
+
+- `reproduce.py` — one-command reproduction of all results (selftest → sweep → plots)
+- `demo.py` — 5-minute interactive demo showing one incident end-to-end
 
 ## Metrics
 

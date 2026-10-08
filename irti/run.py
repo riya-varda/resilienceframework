@@ -26,6 +26,7 @@ CSV_FIELDS = [
     "vector", "seed", "condition", "n_total", "n_kept", "evidence_pct",
     "precision", "recall", "f1", "tp", "fp", "fn",
     "confidence", "decision", "correct_decision", "decision_correct",
+    "stage_recall",
 ]
 
 
@@ -63,6 +64,7 @@ def run(seeds, vectors, n, conditions, base_dir=BASE_DIR):
                     "decision": r["decision"],
                     "correct_decision": r["correct_decision"],
                     "decision_correct": r["decision_correct"],
+                    "stage_recall": r["stage_recall"],
                 })
     return rows
 
@@ -101,6 +103,8 @@ def main():
     ap.add_argument("--conditions", nargs="+", default=degrade.ALL_CONDITIONS)
     ap.add_argument("--random-losses", type=int, nargs="*", default=[],
                     help="additional random-record-loss percentages, e.g. 10 25 50 75 90")
+    ap.add_argument("--combined", action="store_true",
+                    help="include combined degradation conditions (e.g. no_process+no_dns)")
     ap.add_argument("--out", default=os.path.join(BASE_DIR, "results", "results.csv"))
     args = ap.parse_args()
 
@@ -109,6 +113,8 @@ def main():
         cond = "random_%d" % pct
         if cond not in conditions:
             conditions.append(cond)
+    if args.combined:
+        conditions.extend(degrade.COMBINED_CONDITIONS)
 
     vectors = args.vectors or sorted(all_vectors())
     rows = run(args.seeds, vectors, args.n, conditions)

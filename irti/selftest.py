@@ -101,6 +101,27 @@ class TestDegradation(unittest.TestCase):
             self.assertGreater(kept, total * 0.40)
             self.assertLess(kept, total * 0.60)
 
+    def test_combined_degradation(self):
+        with tempfile.TemporaryDirectory() as d:
+            log, _gt, gt = genlog.generate(0, 300, "phishing_powershell", d)
+            out = os.path.join(d, "combined.log")
+            total, kept = degrade.degrade(log, out, "no_process+no_dns")
+            srcs = {ln.split("|")[2].strip() for ln in _lines(out)}
+            self.assertNotIn("process", srcs)
+            self.assertNotIn("dns", srcs)
+            self.assertGreater(kept, 0)
+
+
+class TestStageRecall(unittest.TestCase):
+    def test_full_evidence_stage_recall(self):
+        with tempfile.TemporaryDirectory() as d:
+            for vec in sorted(all_vectors()):
+                log, gt_path, gt = genlog.generate(1, 400, vec, d)
+                recon = reconstruct.reconstruct(log)
+                r = score_recon(recon, gt)
+                self.assertGreaterEqual(r["stage_recall"], 0.8,
+                                        "%s stage_recall" % vec)
+
 
 class TestNoGroundTruthLeakage(unittest.TestCase):
     def test_reconstruct_imports_nothing_from_generator(self):

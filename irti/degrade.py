@@ -24,6 +24,30 @@ SOURCE_DROPS = {
 
 ALL_CONDITIONS = ["full", "no_process", "no_network", "no_dns", "no_file", "no_logon"]
 
+# Combined conditions (stretch goal): remove multiple sources at once.
+COMBINED_CONDITIONS = [
+    "no_process+no_dns",
+    "no_process+no_file",
+    "no_process+no_logon",
+    "no_network+no_file",
+    "no_network+no_logon",
+    "no_dns+no_file",
+    "no_dns+no_logon",
+    "no_file+no_logon",
+]
+
+
+def _parse_combined(condition):
+    """Parse a combined condition like 'no_process+no_dns' into a set of sources to drop."""
+    drops = set()
+    for part in condition.split("+"):
+        part = part.strip()
+        if part in SOURCE_DROPS:
+            drops |= SOURCE_DROPS[part]
+        else:
+            return None
+    return drops
+
 
 def read_lines(path):
     with open(path) as f:
@@ -40,6 +64,16 @@ def degrade(in_path, out_path, condition, seed=0):
         kept = lines
     elif condition in SOURCE_DROPS:
         drops = SOURCE_DROPS[condition]
+        kept = []
+        for ln in lines:
+            parts = [p.strip() for p in ln.split("|")]
+            if len(parts) >= 8 and parts[2] in drops:
+                continue
+            kept.append(ln)
+    elif "+" in condition:
+        drops = _parse_combined(condition)
+        if drops is None:
+            raise ValueError("unknown combined condition %r" % condition)
         kept = []
         for ln in lines:
             parts = [p.strip() for p in ln.split("|")]
