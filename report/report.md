@@ -77,6 +77,12 @@ The impact of structured source removal varies significantly by vector and data 
 | exploit_webshell | no_logon | 1.000 | 1.00 |
 | exploit_webshell | no_network | 0.492 | 0.00 |
 | exploit_webshell | no_process | 0.000 | 0.00 |
+| credential_dumping | full | 0.786 | 1.00 |
+| credential_dumping | no_dns | 0.741 | 1.00 |
+| credential_dumping | no_file | 0.692 | 1.00 |
+| credential_dumping | no_logon | 0.706 | 1.00 |
+| credential_dumping | no_network | 0.640 | 0.00 |
+| credential_dumping | no_process | 0.000 | 0.00 |
 
 **Key Observations:**
 - Process evidence is the absolute keystone; its removal crashes the F1 to 0.000 across all vectors.
@@ -91,6 +97,16 @@ Under random degradation:
 
 ### 5.4 Confidence Calibration
 The reconstruction engine demonstrates overconfidence. Reconstructions claiming a confidence score of 1.0 correspond to actual F1 scores spanning anywhere from 0.35 to 1.0.
+
+### 5.5 Combined Degradation (RQ4 / H4 — Stretch Goal)
+To investigate whether multi-source degradation compounded linearly or synergistically, we tested dual-source omissions (`no_file+no_logon`, `no_dns+no_file`, `no_network+no_file`). 
+
+Comparing observed F1 degradation against the additive sum of individual source penalties ($\Delta_{\text{combined}}$ vs $\Delta_A + \Delta_B$):
+- **Phishing (`no_file + no_logon`):** Individual penalties sum to $\Delta = 0.282$ (predicted $F_1 = 0.607$), while actual combined $F_1$ falls to **0.588**.
+- **Webshell (`no_dns + no_file`):** Individual penalties sum to $\Delta = 0.325$ (predicted $F_1 = 0.675$), while actual combined $F_1$ drops to **0.615**.
+- **Webshell (`no_network + no_file`):** Observed $F_1 = 0.364$ vs linearly predicted $0.490$ ($\Delta_{\text{excess}} = -0.126$).
+
+**Finding (H4):** Telemetry degradation is **superadditive (compounding)**. Removing a second evidentiary source deprives the reconstruction engine of fallback correlation paths, causing structural graph fragmentation faster than linear models predict.
 
 ## 6. Discussion
 
